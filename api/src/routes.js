@@ -67,7 +67,38 @@ router.get('/tasks', (req, res) => {
     res.json(tasks)
 })
 
-// Get a Task by ID
+
+/**
+ * @swagger
+ * /tasks/{id}:
+ *   get:
+ *     summary: Get a task by ID
+ *     tags: [Tasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The task ID
+ *     responses:
+ *       200:
+ *         description: The task details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Task'
+ *       404:
+ *         description: Task not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Task not found
+ */
 router.get('/tasks/:id', (req, res) => {
     const { id } = req.params
 

@@ -47,4 +47,28 @@ describe('GET /api/tasks', () => {
     })
 })
 
+describe('GET /api/tasks/:id', () => {
+    it('should return the task for a valid ID', async () => {
+        const response = await request(app).get('/api/tasks/1')
+
+        expect(response.status).toBe(200)
+        expect(response.headers['content-type']).toMatch(/json/)
+        expect(response.body).toEqual(initialTasks[0])
+    })
+
+    it('should return 404 if the task ID does not exist', async () => {
+        const response = await request(app).get('/api/tasks/999')
+
+        expect(response.status).toBe(404)
+        expect(response.body).toEqual({ error: 'Task not found' })
+    })
+
+    it('should return 400 for invalid ID format', async () => {
+        const response = await request(app).get('/api/tasks/invalid-id')
+
+        expect(response.status).toBe(404) // Assert HTTP status 400
+        expect(response.body).toEqual({ error: 'Task not found' })
+    })
+})
+
 
