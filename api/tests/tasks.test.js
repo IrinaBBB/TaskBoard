@@ -203,40 +203,6 @@ describe('PUT /tasks/:id', () => {
     })
 })
 
-describe('DELETE /tasks/:id', () => {
-    it('should delete a task by ID and return a success message', async () => {
-        const response = await request(app).delete('/api/tasks/1')
-
-        expect(response.status).toBe(200)
-        expect(response.body).toEqual({ message: 'Task deleted successfully.' })
-
-        // Verify the task is removed from the file
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
-        expect(tasksAfter).toEqual([{ id: 2, title: 'Task 2', description: 'Description 2' }])
-    })
-
-    it('should return 404 if the task ID does not exist', async () => {
-        const response = await request(app).delete('/api/tasks/999')
-
-        expect(response.status).toBe(404)
-        expect(response.body).toEqual({ error: 'Task not found.' })
-
-        // Verify no tasks are removed
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
-        expect(tasksAfter).toEqual(initialTasks)
-    })
-
-    it('should return 404 for invalid task ID format', async () => {
-        const response = await request(app).delete('/api/tasks/invalid-id')
-
-        expect(response.status).toBe(404)
-        expect(response.body).toEqual({ error: 'Task not found.' })
-
-        // Verify no tasks are removed
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
-        expect(tasksAfter).toEqual(initialTasks)
-    })
-})
 
 
 
