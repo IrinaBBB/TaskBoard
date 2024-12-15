@@ -1,0 +1,32 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "TaskBoard API with CRUD functionality",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IrinaBBB/TaskBoard.git"
+  },
+  "keywords": [
+    "tasks",
+    "api"
+  ],
+  "author": "Irina Balkarova",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IrinaBBB/TaskBoard/issues"
+  },
+  "homepage": "https://github.com/IrinaBBB/TaskBoard#readme",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
