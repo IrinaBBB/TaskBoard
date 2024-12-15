@@ -1,5 +1,5 @@
 const request = require('supertest')
-const mockFs = require('mock-fs')
+const { vol } = require('memfs') // Import memfs for in-memory file system
 const app = require('../src/app')
 
 const TASKS_FILE = './src/tasks.json'
@@ -9,14 +9,17 @@ const initialTasks = [
     { id: 2, title: 'Task 2', description: 'Description 2' },
 ]
 
+// Mock the fs module with memfs
+jest.mock('fs', () => require('memfs').fs)
+
 beforeEach(() => {
-    mockFs({
-        [TASKS_FILE]: JSON.stringify(initialTasks), // Mock the tasks.json file
-    })
+    vol.fromJSON({
+        [TASKS_FILE]: JSON.stringify(initialTasks),
+    }) // Initialize in-memory file system with tasks
 })
 
 afterEach(() => {
-    mockFs.restore() // Restore the file system after each test
+    vol.reset() // Reset the in-memory file system after each test
 })
 
 describe('GET /api/tasks', () => {
@@ -29,7 +32,7 @@ describe('GET /api/tasks', () => {
     })
 
     it('should return an empty array if no tasks exist', async () => {
-        mockFs({
+        vol.fromJSON({
             [TASKS_FILE]: JSON.stringify([]), // Empty tasks file
         })
 
@@ -80,7 +83,6 @@ describe('POST /api/tasks', () => {
             .set('Content-Type', 'application/json') // Explicitly set Content-Type
             .send(newTask)
 
-
         expect(response.status).toBe(201) // Assert HTTP status 201
         expect(response.headers['content-type']).toMatch(/json/) // Validate JSON response
         expect(response.body).toEqual(
@@ -91,8 +93,7 @@ describe('POST /api/tasks', () => {
             }),
         )
 
-        // Validate that the task is added to the file
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
         expect(tasksAfter).toContainEqual(response.body) // Verify the new task is in the file
     })
 
@@ -137,12 +138,12 @@ describe('PUT /tasks/:id', () => {
             }),
         )
 
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
         expect(tasksAfter[0]).toEqual(response.body) // Verify the task is updated in the file
     })
 
     it('should update only the title if description is not provided', async () => {
-        const updatedTask = { title: 'Updated Task Only' }
+        const updatedTask = { title: 'Updated Title' }
 
         const response = await request(app)
             .put('/api/tasks/2')
@@ -158,8 +159,29 @@ describe('PUT /tasks/:id', () => {
             }),
         )
 
-        const tasksAfter = JSON.parse(mockFs.readFileSync(TASKS_FILE, 'utf-8'))
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
         expect(tasksAfter[1]).toEqual(response.body) // Verify the task is updated in the file
+    })
+
+    it('should update only the description if title is not provided', async () => {
+        const updatedTask = { description: 'Updated Description Only' }
+
+        const response = await request(app)
+            .put('/api/tasks/1')
+            .set('Content-Type', 'application/json')
+            .send(updatedTask)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual(
+            expect.objectContaining({
+                id: 1,
+                title: 'Task 1', // Original title remains unchanged
+                description: updatedTask.description,
+            }),
+        )
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter[0]).toEqual(response.body) // Verify the task is updated in the file
     })
 
     it('should return 404 if the task ID does not exist', async () => {
@@ -172,6 +194,9 @@ describe('PUT /tasks/:id', () => {
 
         expect(response.status).toBe(404)
         expect(response.body).toEqual({ error: 'Task not found.' })
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter).toEqual(initialTasks) // Verify no changes were made to the file
     })
 
     it('should return 400 if neither title nor description is provided', async () => {
@@ -180,7 +205,7 @@ describe('PUT /tasks/:id', () => {
             .set('Content-Type', 'application/json')
             .send({})
 
-        expect(response.status).toBe(200) // Still returns 200 if nothing changes but valid ID
+        expect(response.status).toBe(200) // Still returns 200 if nothing changes
         expect(response.body).toEqual(
             expect.objectContaining({
                 id: 1,
@@ -188,9 +213,12 @@ describe('PUT /tasks/:id', () => {
                 description: 'Description 1',
             }),
         )
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter[0]).toEqual(response.body) // Verify the task remains unchanged
     })
 
-    it('should return 400 for invalid task ID format', async () => {
+    it('should return 404 for invalid task ID format', async () => {
         const updatedTask = { title: 'Invalid ID', description: 'Invalid ID Description' }
 
         const response = await request(app)
@@ -200,11 +228,48 @@ describe('PUT /tasks/:id', () => {
 
         expect(response.status).toBe(404)
         expect(response.body).toEqual({ error: 'Task not found.' })
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter).toEqual(initialTasks) // Verify no changes were made to the file
     })
 })
 
+describe('DELETE /tasks/:id', () => {
+    it('should delete a task by ID and return a success message', async () => {
+        const response = await request(app)
+            .delete('/api/tasks/1')
+            .set('Content-Type', 'application/json')
 
+        expect(response.status).toBe(200)
+        expect(response.body).toEqual({ message: 'Task deleted successfully.' })
 
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter).toEqual([{ id: 2, title: 'Task 2', description: 'Description 2' }]) // Verify the task is removed
+    })
 
+    it('should return 404 if the task ID does not exist', async () => {
+        const response = await request(app)
+            .delete('/api/tasks/999')
+            .set('Content-Type', 'application/json')
+
+        expect(response.status).toBe(404)
+        expect(response.body).toEqual({ error: 'Task not found.' })
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter).toEqual(initialTasks) // Verify no tasks are removed
+    })
+
+    it('should return 404 for an invalid task ID format', async () => {
+        const response = await request(app)
+            .delete('/api/tasks/invalid-id')
+            .set('Content-Type', 'application/json')
+
+        expect(response.status).toBe(404)
+        expect(response.body).toEqual({ error: 'Task not found.' })
+
+        const tasksAfter = JSON.parse(vol.readFileSync(TASKS_FILE, 'utf-8'))
+        expect(tasksAfter).toEqual(initialTasks) // Verify no tasks are removed
+    })
+})
 
 

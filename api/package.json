@@ -23,15 +23,13 @@
   "homepage": "https://github.com/IrinaBBB/TaskBoard#readme",
   "dependencies": {
     "body-parser": "^1.20.3",
-    "chai": "^4.2.0",
-    "chai-http": "^4.2.0",
     "express": "^4.21.2",
-    "mocha": "^11.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "memfs": "^4.15.0",
     "mock-fs": "^5.4.1",
     "nodemon": "^3.1.9",
     "sinon": "^19.0.2",
