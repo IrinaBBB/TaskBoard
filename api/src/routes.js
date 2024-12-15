@@ -259,6 +259,54 @@ router.put('/tasks/:id', (req, res) => {
     res.json(tasks[taskIndex])
 })
 
+/**
+ * @swagger
+ * /tasks/{id}:
+ *   delete:
+ *     summary: Delete a task by ID
+ *     tags: [Tasks]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The ID of the task to delete
+ *     responses:
+ *       200:
+ *         description: Task deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Task deleted successfully.
+ *       404:
+ *         description: Task not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Task not found.
+ */
+router.delete('/tasks/:id', (req, res) => {
+    const { id } = req.params
+
+    const tasks = readTasks()
+    const filteredTasks = tasks.filter((task) => task.id !== parseInt(id, 10))
+
+    if (tasks.length === filteredTasks.length) {
+        return res.status(404).json({ error: 'Task not found.' })
+    }
+
+    writeTasks(filteredTasks)
+    res.json({ message: 'Task deleted successfully.' })
+})
 
 // 404 handler for unknown routes
 router.use((req, res) => {

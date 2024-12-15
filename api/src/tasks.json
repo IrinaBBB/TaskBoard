@@ -13,10 +13,5 @@
     "id": 3,
     "title": "Book dentist appointment",
     "description": "Schedule a cleaning and check-up for next week."
-  },
-  {
-    "id": 4,
-    "title": "Take the cat to the vet",
-    "description": "Tomorrow"
   }
 ]
