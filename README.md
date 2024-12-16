@@ -19,14 +19,14 @@ task details, and delete tasks.
 - Input validation ensures that all required fields (title and description) are provided.
 - Tasks are stored in a JSON file.
 
-## Simple UI was added for Demonstration
+## A Simple UI was implemented for Demonstration
 
 ![Task Board Screenshot](client/public/img.png)
 
 ## How to Run
 
 1. Clone the repository.
-2. To run the API `cd api` `npm i` `npm stat`.
+2. To run the API `cd api` `npm i` `npm start`.
 3. To run the Tests `cd api` `npm test`.
 4. To run the Client `cd client` `npm i` `npm run dev`.
 
