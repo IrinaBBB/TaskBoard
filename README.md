@@ -36,4 +36,4 @@ task details, and delete tasks.
 
 ## The API can be tested with Postman
 
-- The Collection for Postman can be found in the `api` folder.
+- The Collection for Postman can be found in the `api` folder. It can be imported to Postman and used for testing.
